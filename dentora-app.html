@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#0D1B2A"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Dentora"/>
+<title>Dentora</title>
+
+<!-- PWA Manifest inline -->
+<script>
+const manifestData = {
+  name: "Dentora",
+  short_name: "Dentora",
+  description: "Learn. Master. Care.",
+  start_url: "./",
+  display: "standalone",
+  background_color: "#0D1B2A",
+  theme_color: "#0D1B2A",
+  orientation: "portrait",
+  icons: [
+    { src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%230D1B2A'/%3E%3Ctext y='140' x='96' text-anchor='middle' font-size='120'%3E🦷%3C/text%3E%3C/svg%3E", sizes: "192x192", type: "image/svg+xml" },
+    { src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%230D1B2A'/%3E%3Ctext y='380' x='256' text-anchor='middle' font-size='320'%3E🦷%3C/text%3E%3C/svg%3E", sizes: "512x512", type: "image/svg+xml" }
+  ]
+};
+const blob = new Blob([JSON.stringify(manifestData)], {type:'application/json'});
+const manifestURL = URL.createObjectURL(blob);
+document.write('<link rel="manifest" href="' + manifestURL + '">');
+</script>
+
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  :root{
+    --bg:#0D1B2A;--bg2:#0F2035;--card:#152840;--card2:#1A3050;
+    --gold:#D4AF37;--goldD:#A8872A;--goldL:#F0CB50;
+    --txt:#E8EDF5;--dim:#7A90A8;--muted:#4A6080;
+    --bdr:rgba(212,175,55,0.18);--bdr2:rgba(255,255,255,0.07);
+    --green:#3CB87A;--red:#E05C5C;--blue:#3A80E8;
+  }
+  html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans-serif;color:var(--txt);overflow:hidden;}
+  #app{height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;position:relative;overflow:hidden;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+  input{font-family:inherit;color:var(--txt);}
+  input::placeholder{color:var(--dim);}
+  ::-webkit-scrollbar{width:0;}
+
+  /* ── TOPBAR ── */
+  .topbar{background:var(--bg);padding:44px 16px 12px;display:flex;align-items:center;gap:10;border-bottom:1px solid var(--bdr2);position:sticky;top:0;z-index:50;flex-shrink:0;}
+  .topbar-title{color:var(--gold);font-weight:900;font-size:26px;letter-spacing:1px;flex:1;}
+  .topbar-sub{color:var(--txt);font-weight:700;font-size:17px;flex:1;}
+  .hamburger{display:flex;flex-direction:column;gap:4px;padding:4px;}
+  .hamburger span{width:20px;height:2px;background:var(--txt);border-radius:2px;display:block;}
+  .back-btn{font-size:22px;padding:0 4px;color:var(--txt);}
+  .bell{font-size:20px;color:var(--muted);}
+
+  /* ── CONTENT ── */
+  .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .pad{padding:16px;}
+  .pad-h{padding:0 18px;}
+
+  /* ── BOTTOM NAV ── */
+  .bnav{background:var(--bg);border-top:1px solid var(--bdr2);display:flex;flex-shrink:0;}
+  .bnav-item{flex:1;padding:10px 0 12px;display:flex;flex-direction:column;align-items:center;gap:3px;}
+  .bnav-icon{font-size:20px;}
+  .bnav-label{font-size:10px;}
+  .bnav-dot{width:18px;height:2.5px;border-radius:2px;background:var(--gold);margin-top:1px;}
+
+  /* ── DRAWER ── */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;backdrop-filter:blur(3px);}
+  .drawer{position:fixed;left:0;top:0;bottom:0;width:252px;background:#091422;z-index:210;display:flex;flex-direction:column;box-shadow:6px 0 40px rgba(0,0,0,0.6);transform:translateX(0);transition:transform 0.25s;}
+  .drawer-logo{padding:48px 22px 22px;border-bottom:1px solid var(--bdr);}
+  .drawer-logo-row{display:flex;align-items:center;gap:11px;}
+  .drawer-icon{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--goldL),var(--goldD));display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 16px rgba(212,175,55,0.3);}
+  .drawer-name{font-weight:900;font-size:19px;letter-spacing:2.5px;line-height:1;}
+  .drawer-tagline{color:var(--gold);font-size:9px;letter-spacing:2px;margin-top:3px;}
+  .drawer-items{flex:1;overflow-y:auto;padding:8px 0;}
+  .drawer-item{display:flex;align-items:center;gap:14px;padding:13px 22px;border-left:3px solid transparent;transition:all 0.18s;}
+  .drawer-item.active{background:linear-gradient(90deg,rgba(212,175,55,0.17),transparent);border-left-color:var(--gold);}
+  .drawer-item span:first-child{font-size:17px;width:20px;text-align:center;}
+  .drawer-item .di-label{font-size:14px;color:var(--dim);}
+  .drawer-item.active .di-label{color:var(--gold);font-weight:700;}
+  .drawer-foot{padding:14px 22px;border-top:1px solid var(--bdr);font-size:10px;color:var(--muted);text-align:center;letter-spacing:0.5px;}
+
+  /* ── CARDS ── */
+  .card{background:var(--card);border:1px solid var(--bdr2);border-radius:16px;}
+  .card-gold{border-color:var(--bdr);}
+  .search-box{background:var(--card2);border:1px solid var(--bdr2);border-radius:12px;display:flex;align-items:center;gap:10px;padding:11px 14px;}
+  .search-box input{background:transparent;border:none;outline:none;flex:1;font-size:13px;}
+
+  /* ── HOME HERO ── */
+  .hero{background:linear-gradient(135deg,var(--card2),var(--bg2));border:1px solid var(--bdr);border-radius:18px;padding:18px 16px;position:relative;overflow:hidden;}
+  .hero-bg{position:absolute;right:-8px;top:-8px;font-size:70px;opacity:0.07;transform:rotate(15deg);}
+  .hero-title{font-size:19px;font-weight:800;line-height:1.25;margin-bottom:6px;}
+  .hero-sub{color:var(--dim);font-size:12px;margin-bottom:14px;line-height:1.5;}
+  .hero-badge{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(90deg,var(--gold),var(--goldD));border-radius:10px;padding:8px 14px;}
+  .hero-badge span{color:#0D1B2A;font-weight:700;font-size:12px;}
+
+  /* ── SUBJECT CARDS ── */
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+  .subj-card{background:var(--card);border:1px solid var(--bdr2);border-radius:14px;padding:14px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .subj-card .emoji{font-size:28px;}
+  .subj-card .name{font-size:11px;font-weight:600;line-height:1.2;color:var(--txt);}
+  .subj-card2{background:var(--card);border:1px solid var(--bdr2);border-radius:16px;padding:20px 12px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .subj-card2 .emoji{font-size:36px;}
+  .subj-card2 .name{font-size:13px;font-weight:700;line-height:1.2;}
+  .subj-card2 .meta{display:flex;gap:8px;align-items:center;}
+  .subj-card2 .meta span{color:var(--dim);font-size:10px;}
+  .subj-card2 .meta .dot{color:var(--muted);}
+
+  /* ── SECTION HEADER ── */
+  .sec-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+  .sec-hdr h3{color:var(--txt);font-weight:700;font-size:15px;}
+  .sec-hdr a{color:var(--gold);font-size:13px;}
+
+  /* ── TABS ── */
+  .tabs{display:flex;border-bottom:1px solid var(--bdr2);padding:0 16px;}
+  .tab{background:none;border:none;padding:9px 10px;font-size:12px;color:var(--dim);border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;}
+  .tab.active{color:var(--gold);font-weight:700;border-bottom-color:var(--gold);}
+
+  /* ── SUBJECT HEADER ── */
+  .subj-hdr{padding-top:44px;position:sticky;top:0;z-index:50;}
+  .subj-hdr-top{display:flex;align-items:center;gap:10px;padding:0 16px 12px;}
+
+  /* ── STAT CARDS ── */
+  .stats-row{display:flex;gap:10px;margin-bottom:20px;}
+  .stat-card{flex:1;background:var(--card);border:1px solid var(--bdr2);border-radius:12px;padding:12px 6px;text-align:center;}
+  .stat-val{color:var(--gold);font-weight:800;font-size:20px;line-height:1;}
+  .stat-lbl{color:var(--dim);font-size:11px;margin-top:4px;}
+
+  /* ── TOPIC ROW ── */
+  .topic-row{display:flex;justify-content:space-between;align-items:center;padding:13px 14px;background:var(--card);border:1px solid var(--bdr2);border-radius:12px;margin-bottom:8px;}
+  .topic-row span{font-size:13px;}
+
+  /* ── MCQ ── */
+  .mcq-hdr{background:var(--bg2);padding:42px 16px 14px;border-bottom:1px solid var(--bdr2);}
+  .mcq-hdr-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .timer-box{display:flex;align-items:center;gap:6px;background:var(--card);border-radius:8px;padding:6px 10px;}
+  .timer-txt{color:var(--gold);font-weight:700;font-size:13px;font-variant-numeric:tabular-nums;}
+  .prog-bar-wrap{display:flex;align-items:center;gap:10px;}
+  .prog-bar{flex:1;background:var(--card2);border-radius:4px;height:5px;overflow:hidden;}
+  .prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--goldD));border-radius:4px;transition:width 0.3s;}
+  .prog-txt{color:var(--dim);font-size:12px;white-space:nowrap;}
+  .opt-btn{width:100%;text-align:left;background:var(--card);border:1.5px solid var(--bdr2);border-radius:14px;padding:13px 14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;transition:all 0.18s;}
+  .opt-prefix{width:32px;height:32px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;transition:all 0.18s;}
+  .opt-text{font-size:13.5px;flex:1;}
+  .action-btn{width:100%;border:none;border-radius:14px;padding:14px;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit;transition:all 0.2s;}
+  .action-btn.primary{background:linear-gradient(90deg,var(--gold),var(--goldD));color:#0D1B2A;}
+  .action-btn.disabled{background:var(--card2);color:var(--muted);}
+
+  /* ── PROGRESS ── */
+  .circ-wrap{position:relative;width:130px;height:130px;margin:0 auto 18px;}
+  .circ-txt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:var(--gold);}
+  .week-chart{display:flex;align-items:flex-end;gap:6px;height:80px;}
+  .week-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .week-bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(0deg,var(--gold),var(--goldL));}
+  .week-lbl{color:var(--dim);font-size:9.5px;}
+  .subj-prog-row{background:var(--card);border:1px solid var(--bdr2);border-radius:14px;padding:13px 14px;margin-bottom:8px;}
+  .subj-prog-hdr{display:flex;justify-content:space-between;margin-bottom:8px;}
+  .subj-prog-bar{background:var(--card2);border-radius:4px;height:6px;}
+  .subj-prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--goldD));border-radius:4px;}
+
+  /* ── FILE TILE ── */
+  .file-tile{background:var(--card);border:1px solid var(--bdr2);border-radius:14px;padding:13px 14px;display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+  .file-icon{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+  .file-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .file-meta{font-size:11px;color:var(--dim);margin-top:3px;}
+  .file-actions{display:flex;gap:4px;margin-left:auto;}
+
+  /* ── IMG GRID ── */
+  .img-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .img-wrap{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:1;}
+  .img-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
+  .img-del{position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.72);border:none;border-radius:50%;width:26px;height:26px;color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;}
+
+  /* ── FAB ── */
+  .fab{position:absolute;bottom:80px;right:20px;width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--goldD));color:#0D1B2A;font-size:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 22px rgba(212,175,55,0.4);z-index:60;border:none;}
+
+  /* ── ATTACH SHEET ── */
+  .sheet-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.72);z-index:100;display:flex;align-items:flex-end;}
+  .sheet{background:var(--bg2);border-radius:22px 22px 0 0;padding:22px 24px 48px;width:100%;border:1px solid var(--bdr);}
+  .sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--muted);margin:0 auto 18px;}
+  .attach-row{display:flex;justify-content:space-around;margin-top:22px;}
+  .attach-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .attach-circle{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;}
+
+  /* ── EMPTY ── */
+  .empty{text-align:center;padding:50px 20px;}
+  .empty .ei{font-size:54px;margin-bottom:14px;}
+  .empty .et{font-size:16px;font-weight:600;margin-bottom:6px;}
+  .empty .es{font-size:13px;color:var(--dim);}
+
+  /* ── ABOUT ── */
+  .feat-row{background:var(--card);border:1px solid var(--bdr2);border-radius:14px;padding:14px;display:flex;gap:12px;margin-bottom:10px;}
+  .feat-icon{width:38px;height:38px;border-radius:10px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .feat-title{font-size:13px;font-weight:700;margin-bottom:4px;}
+  .feat-sub{font-size:12px;color:var(--dim);line-height:1.5;}
+  .knowledge-banner{background:rgba(212,175,55,0.12);border:1px solid var(--bdr);border-radius:14px;padding:14px 16px;text-align:center;color:var(--gold);font-size:13px;font-weight:600;}
+
+  /* ── CONTINUE ── */
+  .continue-card{background:var(--card);border:1px solid var(--bdr2);border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;}
+  .cont-thumb{width:52px;height:52px;border-radius:12px;background:#0E2D54;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+  .prog-mini{background:var(--card2);border-radius:4px;height:5px;overflow:hidden;margin-top:8px;}
+  .prog-mini-fill{width:48%;height:100%;background:linear-gradient(90deg,var(--gold),var(--goldD));border-radius:4px;}
+  .cont-avatar{width:32px;height:32px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;color:#0D1B2A;font-weight:700;font-size:12px;flex-shrink:0;}
+
+  /* ── MCQ RESULT ── */
+  .result-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:16px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<input type="file" id="imgInput" accept="image/*" multiple style="display:none"/>
+<input type="file" id="vidInput" accept="video/*" style="display:none"/>
+<input type="file" id="fileInput" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt" multiple style="display:none"/>
+
+<script>
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+const STATE = {
+  screen: 'home',
+  prevScreen: null,
+  drawer: false,
+  subject: null,
+  subTab: 'overview',
+  showAttach: false,
+  materials: {},
+  mcq: { idx:0, sel:null, answered:false, score:0, done:false, timer:331 },
+  mcqInterval: null,
+};
+
+const SUBJECTS = [
+  { id:1, name:'Oral Medicine',   emoji:'🦷', topics:32, notes:128, mcqs:450, color:'#0E2D54' },
+  { id:2, name:'Prosthodontics',  emoji:'🦴', topics:28, notes:95,  mcqs:310, color:'#0E3828' },
+  { id:3, name:'Oral Surgery',    emoji:'⚕️', topics:24, notes:87,  mcqs:280, color:'#3A1212' },
+  { id:4, name:'Periodontology',  emoji:'🔬', topics:20, notes:76,  mcqs:220, color:'#0E2840' },
+  { id:5, name:'Pharmacology',    emoji:'💊', topics:36, notes:142, mcqs:520, color:'#220E3A' },
+  { id:6, name:'Pathology',       emoji:'🧬', topics:18, notes:64,  mcqs:190, color:'#2E1E08' },
+];
+
+const TOPICS = {
+  1:['Oral Mucosal Diseases','Salivary Gland Disorders','Oral Potentially Malignant Disorders','Temporomandibular Disorders'],
+  2:['Complete Dentures','Partial Dentures','Crown & Bridge','Implant Prosthodontics'],
+  3:['Tooth Extraction','Surgical Anatomy','Flap Design','Impacted Teeth'],
+  4:['Gingival Diseases','Periodontitis','Furcation Involvement','Periodontal Surgery'],
+  5:['Local Anesthetics','Analgesics','Antibiotics','Antifungals'],
+  6:['Caries Pathology','Pulp Diseases','Periapical Lesions','Cysts & Tumors'],
+};
+
+const MCQS = [
+  { q:'The most commonly used local anesthetic in dentistry is:', opts:['Lidocaine','Articaine','Prilocaine','Bupivacaine'], ans:0 },
+  { q:'Which nerve supplies the mandibular teeth?', opts:['Maxillary nerve','Inferior alveolar nerve','Lingual nerve','Buccal nerve'], ans:1 },
+  { q:'The periodontal ligament width is approximately:', opts:['0.05 mm','0.25 mm','0.5 mm','1.0 mm'], ans:1 },
+  { q:'Enamel is formed by which cells?', opts:['Cementoblasts','Odontoblasts','Ameloblasts','Osteoblasts'], ans:2 },
+  { q:'The most common site for oral cancer is:', opts:['Hard palate','Dorsum of tongue','Floor of mouth','Buccal mucosa'], ans:2 },
+];
+
+const NAV = [
+  {id:'home',icon:'⌂',label:'Home'},{id:'subjects',icon:'⊞',label:'Subjects'},
+  {id:'mcqTests',icon:'?',label:'MCQ Tests'},{id:'notesPdfs',icon:'📄',label:'Notes & PDFs'},
+  {id:'bookmarks',icon:'⊹',label:'Bookmarks'},{id:'progress',icon:'📊',label:'My Progress'},
+  {id:'downloads',icon:'⬇',label:'Downloads'},{id:'settings',icon:'⚙',label:'Settings'},
+  {id:'about',icon:'ℹ',label:'About Us'},
+];
+
+const fmt = s => `00:${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+
+// ══════════════════════════════════════════
+// RENDER ENGINE
+// ══════════════════════════════════════════
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = buildScreen();
+  bindEvents();
+}
+
+function buildScreen() {
+  const s = STATE.screen;
+  if (s === 'home')      return buildHome();
+  if (s === 'subjects')  return buildSubjects();
+  if (s === 'detail')    return buildDetail();
+  if (s === 'mcqTests')  return buildMCQ();
+  if (s === 'progress')  return buildProgress();
+  if (s === 'bookmarks') return buildBookmarks();
+  if (s === 'settings')  return buildSettings();
+  return buildAbout();
+}
+
+// ── TOPBAR ──
+function topbar(isHome, title, hasBack) {
+  return `<div class="topbar">
+    ${hasBack
+      ? `<button class="back-btn" onclick="goBack()">←</button>`
+      : `<button onclick="toggleDrawer()"><div class="hamburger"><span></span><span></span><span></span></div></button>`
+    }
+    <div class="${isHome?'topbar-title':'topbar-sub'}">${isHome?'Dentora':title}</div>
+    <button class="bell">🔔</button>
+  </div>`;
+}
+
+// ── BOTTOM NAV ──
+function bnav() {
+  const s = STATE.screen;
+  const items = [['⌂','Home','home'],['🔍','Search','search'],['⊹','Bookmarks','bookmarks'],['👤','Profile','about']];
+  return `<div class="bnav">${items.map(([ic,lb,id])=>`
+    <button class="bnav-item" onclick="go('${id}')">
+      <span class="bnav-icon" style="color:${s===id?'var(--gold)':'var(--muted)'}">${ic}</span>
+      <span class="bnav-label" style="color:${s===id?'var(--gold)':'var(--muted)'};font-weight:${s===id?700:400}">${lb}</span>
+      ${s===id?'<div class="bnav-dot"></div>':''}
+    </button>`).join('')}</div>`;
+}
+
+// ── DRAWER ──
+function drawer() {
+  if (!STATE.drawer) return '';
+  const s = STATE.screen;
+  return `<div class="overlay" onclick="toggleDrawer()"></div>
+  <div class="drawer">
+    <div class="drawer-logo">
+      <div class="drawer-logo-row">
+        <div class="drawer-icon">🦷</div>
+        <div>
+          <div class="drawer-name">DENTORA</div>
+          <div class="drawer-tagline">LEARN · MASTER · CARE</div>
+        </div>
+      </div>
+    </div>
+    <div class="drawer-items">
+      ${NAV.map(n=>`
+        <div class="drawer-item ${s===n.id?'active':''}" onclick="go('${n.id}')">
+          <span>${n.icon}</span>
+          <span class="di-label">${n.label}</span>
+        </div>`).join('')}
+    </div>
+    <div class="drawer-foot">Dental knowledge at your fingertips</div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+// HOME
+// ══════════════════════════════════════════
+function buildHome() {
+  return `${drawer()}${topbar(true)}
+  <div class="content">
+    <div class="pad-h" style="padding-top:16px;padding-bottom:4px;font-size:13px;color:var(--dim)">
+      Your journey to dental <span style="color:var(--gold);font-weight:700">excellence</span>
+    </div>
+    <div class="pad-h" style="margin:10px 0">
+      <div class="search-box"><span style="font-size:16px;color:var(--dim)">🔍</span><input placeholder="Search for topics, subjects..."/></div>
+    </div>
+    <div class="pad-h" style="margin-bottom:12px">
+      <div class="hero">
+        <div class="hero-bg">🦷</div>
+        <div class="hero-title">Keep learning,<br/><span style="color:var(--gold)">keep growing.</span></div>
+        <div class="hero-sub">Knowledge is the<br/>foundation of great care.</div>
+        <div class="hero-badge"><span style="font-size:18px">🛡️</span><span>Keep going, you're doing great!</span></div>
+      </div>
+    </div>
+    <div class="pad-h">
+      <div class="sec-hdr">
+        <h3>Subjects</h3>
+        <a onclick="go('subjects')">See All</a>
+      </div>
+      <div class="grid3">
+        ${SUBJECTS.map(s=>`
+          <button class="subj-card" onclick="openSubject(${s.id})">
+            <span class="emoji">${s.emoji}</span>
+            <span class="name">${s.name}</span>
+          </button>`).join('')}
+      </div>
+    </div>
+    <div class="pad" style="padding-top:16px;padding-bottom:80px">
+      <h3 style="margin-bottom:12px">Continue Learning</h3>
+      <div class="continue-card">
+        <div class="cont-thumb">🦷</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:13px">Oral Anatomy</div>
+          <div style="color:var(--dim);font-size:11px;margin-bottom:0">Chapter 2 · Maxilla</div>
+          <div class="prog-mini"><div class="prog-mini-fill"></div></div>
+        </div>
+        <div class="cont-avatar">P</div>
+      </div>
+    </div>
+  </div>
+  ${bnav()}`;
+}
+
+// ══════════════════════════════════════════
+// SUBJECTS
+// ══════════════════════════════════════════
+function buildSubjects() {
+  return `${drawer()}${topbar(true)}
+  <div class="content">
+    <div class="pad-h" style="padding-top:14px;padding-bottom:4px;font-size:13px;color:var(--dim)">
+      Your journey to dental <span style="color:var(--gold);font-weight:700">excellence</span>
+    </div>
+    <div class="pad-h" style="margin:8px 0 16px">
+      <div class="search-box"><span style="color:var(--dim)">🔍</span><input placeholder="Search for topics, subjects..."/></div>
+    </div>
+    <div class="pad-h" style="padding-bottom:80px">
+      <div class="grid2">
+        ${SUBJECTS.map(s=>`
+          <button class="subj-card2" onclick="openSubject(${s.id})">
+            <span class="emoji">${s.emoji}</span>
+            <span class="name">${s.name}</span>
+            <div class="meta">
+              <span>${s.topics} topics</span>
+              <span class="dot">·</span>
+              <span>${s.mcqs}+ MCQs</span>
+            </div>
+          </button>`).join('')}
+      </div>
+    </div>
+  </div>
+  ${bnav()}`;
+}
+
+// ══════════════════════════════════════════
+// SUBJECT DETAIL
+// ══════════════════════════════════════════
+function buildDetail() {
+  const sub = STATE.subject;
+  if (!sub) return buildHome();
+  const mats  = STATE.materials[sub.id] || [];
+  const imgs  = mats.filter(m=>m.type==='image');
+  const vids  = mats.filter(m=>m.type==='video');
+  const pdfs  = mats.filter(m=>m.type==='pdf');
+  const docs  = mats.filter(m=>m.type==='doc');
+  const t = STATE.subTab;
+  const topics = TOPICS[sub.id] || [];
+
+  let tabContent = '';
+  if (t==='overview') tabContent = `
+    <div style="border-radius:16px;overflow:hidden;height:155px;background:linear-gradient(135deg,${sub.color},#0A1628);display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:72px">${sub.emoji}</div>
+    <div style="font-weight:700;font-size:15px;margin-bottom:8px">About This Subject</div>
+    <div style="color:var(--dim);font-size:12.5px;line-height:1.65;margin-bottom:16px">${sub.name} is the branch of dentistry that deals with the diagnosis and non-surgical management of diseases affecting the oral and maxillofacial region.</div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val">${sub.topics}</div><div class="stat-lbl">Topics</div></div>
+      <div class="stat-card"><div class="stat-val">${sub.notes}</div><div class="stat-lbl">Notes</div></div>
+      <div class="stat-card"><div class="stat-val">${sub.mcqs}+</div><div class="stat-lbl">MCQs</div></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-weight:700;font-size:14px">Recent Topics</span>
+      <span style="color:var(--gold);font-size:12px">View All</span>
+    </div>
+    ${topics.map(tp=>`<div class="topic-row"><span>${tp}</span><span>📎</span></div>`).join('')}`;
+
+  if (t==='notes') tabContent = docs.length===0
+    ? `<div class="empty"><div class="ei">📝</div><div class="et">No notes yet</div><div class="es">Tap + to add notes</div></div>`
+    : docs.map(m=>fileTileHtml(m)).join('');
+
+  if (t==='pdfs') tabContent = pdfs.length===0
+    ? `<div class="empty"><div class="ei">📕</div><div class="et">No PDFs yet</div><div class="es">Tap + to add PDF files</div></div>`
+    : pdfs.map(m=>fileTileHtml(m)).join('');
+
+  if (t==='mcqs') tabContent = `
+    <div class="card card-gold" style="padding:24px 16px;text-align:center;margin-bottom:14px">
+      <div style="color:var(--gold);font-weight:900;font-size:36px;line-height:1">${sub.mcqs}+</div>
+      <div style="color:var(--dim);font-size:13px;margin:6px 0 18px">MCQs for ${sub.name}</div>
+      <button class="action-btn primary" style="max-width:200px;margin:0 auto" onclick="go('mcqTests')">Start MCQ Test</button>
+    </div>
+    ${[['📝','Last Attempt','Score: 78% · 2 days ago'],['⏱','Average Time','4:32 per question'],['🏆','Best Score','92% · 1 week ago']].map(([ic,t,s])=>`
+      <div class="file-tile">
+        <div class="file-icon" style="background:rgba(212,175,55,0.12)">${ic}</div>
+        <div><div class="file-name">${t}</div><div class="file-meta">${s}</div></div>
+      </div>`).join('')}`;
+
+  if (t==='images') tabContent = imgs.length===0 && vids.length===0
+    ? `<div class="empty"><div class="ei">🖼️</div><div class="et">No images yet</div><div class="es">Tap + to add images</div></div>`
+    : `<div class="img-grid">${imgs.map(m=>`
+        <div class="img-wrap">
+          <img src="${m.url}" loading="lazy"/>
+          <button class="img-del" onclick="deleteMat('${m.id}')">✕</button>
+        </div>`).join('')}</div>
+       ${vids.length?`<div style="margin-top:14px;font-weight:700;font-size:14px;margin-bottom:10px">Videos</div>${vids.map(m=>fileTileHtml(m)).join('')}`:''}`;
+
+  return `${STATE.showAttach?attachSheet():''}
+  <div style="background:linear-gradient(160deg,${sub.color},var(--bg));padding-top:44px;position:sticky;top:0;z-index:50;flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:10px;padding:0 16px 12px">
+      <button class="back-btn" onclick="goBack()">←</button>
+      <span style="color:var(--txt);font-weight:700;font-size:17px;flex:1">${sub.name}</span>
+      <span style="font-size:20px;color:var(--dim)">🤍</span>
+    </div>
+    <div class="tabs">
+      ${['overview','notes','pdfs','mcqs','images'].map(tb=>`
+        <button class="tab ${STATE.subTab===tb?'active':''}" onclick="setTab('${tb}')">
+          ${tb==='pdfs'?'PDFs':tb.charAt(0).toUpperCase()+tb.slice(1)}
+        </button>`).join('')}
+    </div>
+  </div>
+  <div class="content"><div class="pad" style="padding-bottom:100px">${tabContent}</div></div>
+  <button class="fab" onclick="openAttach()">+</button>`;
+}
+
+function fileTileHtml(m) {
+  const icons = {pdf:'📕',doc:'📝',video:'🎬',file:'📎',image:'🖼️'};
+  const colors = {pdf:'rgba(224,92,92,0.15)',doc:'rgba(58,128,232,0.15)',video:'rgba(224,92,92,0.15)',file:'rgba(212,175,55,0.15)'};
+  const size = m.size>1048576?`${(m.size/1048576).toFixed(1)} MB`:`${(m.size/1024).toFixed(0)} KB`;
+  return `<div class="file-tile">
+    <div class="file-icon" style="background:${colors[m.type]||colors.file}">${icons[m.type]||'📎'}</div>
+    <div style="flex:1;overflow:hidden">
+      <div class="file-name">${m.name}</div>
+      <div class="file-meta">${size} · ${m.date}</div>
+    </div>
+    <div class="file-actions">
+      <a href="${m.url}" download="${m.name}" style="font-size:18px;color:var(--gold);text-decoration:none;padding:4px">⬇</a>
+      <button style="font-size:16px;color:var(--red);padding:4px" onclick="deleteMat('${m.id}')">🗑</button>
+    </div>
+  </div>`;
+}
+
+function attachSheet() {
+  return `<div class="sheet-overlay" onclick="closeAttach()">
+    <div class="sheet" onclick="event.stopPropagation()">
+      <div class="sheet-handle"></div>
+      <div style="font-weight:700;font-size:17px;margin-bottom:4px">إرفاق محتوى</div>
+      <div style="color:var(--dim);font-size:13px">اختاري نوع الملف</div>
+      <div class="attach-row">
+        <button class="attach-btn" onclick="pickImg()">
+          <div class="attach-circle" style="background:rgba(58,128,232,0.12);border:1.5px solid rgba(58,128,232,0.4)">🖼️</div>
+          <span style="color:var(--blue);font-size:12px;font-weight:600">صور</span>
+        </button>
+        <button class="attach-btn" onclick="pickImg()">
+          <div class="attach-circle" style="background:rgba(34,197,94,0.12);border:1.5px solid rgba(34,197,94,0.4)">📸</div>
+          <span style="color:#22C55E;font-size:12px;font-weight:600">كاميرا</span>
+        </button>
+        <button class="attach-btn" onclick="pickVid()">
+          <div class="attach-circle" style="background:rgba(224,92,92,0.12);border:1.5px solid rgba(224,92,92,0.4)">🎬</div>
+          <span style="color:var(--red);font-size:12px;font-weight:600">فيديو</span>
+        </button>
+        <button class="attach-btn" onclick="pickFile()">
+          <div class="attach-circle" style="background:rgba(212,175,55,0.12);border:1.5px solid rgba(212,175,55,0.4)">📄</div>
+          <span style="color:var(--gold);font-size:12px;font-weight:600">PDF/Doc</span>
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+// MCQ
+// ══════════════════════════════════════════
+function buildMCQ() {
+  const {idx,sel,answered,score,done,timer} = STATE.mcq;
+  if (done) return `
+    ${topbar(false,'MCQ Results',true)}
+    <div class="result-wrap">
+      <div style="font-size:70px">🏆</div>
+      <div style="color:var(--gold);font-size:52px;font-weight:900;line-height:1">${Math.round((score/MCQS.length)*100)}%</div>
+      <div style="font-size:18px;font-weight:700">Test Complete!</div>
+      <div style="color:var(--dim);font-size:14px">${score} / ${MCQS.length} correct answers</div>
+      <button class="action-btn primary" style="max-width:220px;margin-top:12px" onclick="resetMCQ()">Try Again</button>
+    </div>`;
+
+  const q = MCQS[idx];
+  const opts = q.opts.map((opt,i)=>{
+    let bg='var(--card)',bdr='var(--bdr2)',col='var(--txt)',pbg='var(--card2)',pcol='var(--dim)';
+    if(answered){
+      if(i===q.ans){bg='#0B3226';bdr='var(--green)';col='var(--green)';pbg='var(--green)';pcol='#fff';}
+      else if(i===sel){bg='#2E1010';bdr='var(--red)';col='var(--red)';pbg='var(--red)';pcol='#fff';}
+    } else if(i===sel){bg='var(--card2)';bdr='var(--gold)';col='var(--gold)';pbg='var(--gold)';pcol='#0D1B2A';}
+    const suffix = answered&&i===q.ans?'<span style="margin-left:auto;font-size:18px">✓</span>'
+      : answered&&i===sel&&i!==q.ans?'<span style="margin-left:auto;font-size:16px;color:var(--red)">✗</span>':'';
+    return `<button class="opt-btn" style="background:${bg};border-color:${bdr}" onclick="selectOpt(${i})">
+      <div class="opt-prefix" style="background:${pbg};color:${pcol};border-color:${bdr}">${String.fromCharCode(65+i)}</div>
+      <span class="opt-text" style="color:${col}">${opt}</span>${suffix}
+    </button>`;
+  }).join('');
+
+  const actionBtn = !answered
+    ? `<button class="action-btn ${sel===null?'disabled':'primary'}" onclick="checkAnswer()">Check Answer</button>`
+    : `<button class="action-btn primary" onclick="nextQuestion()">${idx+1>=MCQS.length?'View Results 🎉':'Next Question →'}</button>`;
+
+  return `<div class="mcq-hdr">
+    <div class="mcq-hdr-row">
+      <button class="back-btn" onclick="goBack()">←</button>
+      <span style="font-weight:700;font-size:15px;flex:1">Pharmacology Test</span>
+      <div class="timer-box"><span style="font-size:14px">⏱</span><span class="timer-txt">${fmt(timer)}</span></div>
+    </div>
+    <div class="prog-bar-wrap">
+      <div class="prog-bar"><div class="prog-fill" style="width:${(idx/MCQS.length)*100}%"></div></div>
+      <span class="prog-txt">Q ${idx+1}/${MCQS.length}</span>
+    </div>
+  </div>
+  <div class="content" style="padding:20px 16px">${opts}</div>
+  <div style="padding:12px 16px 28px;border-top:1px solid var(--bdr2);background:var(--bg);flex-shrink:0">${actionBtn}</div>`;
+}
+
+// ══════════════════════════════════════════
+// PROGRESS
+// ══════════════════════════════════════════
+function buildProgress() {
+  const pcts = [65,48,80,32,58,41];
+  return `${drawer()}${topbar(false,'My Progress',true)}
+  <div class="content"><div class="pad" style="padding-bottom:80px">
+    <div class="card card-gold" style="padding:22px 16px;text-align:center;margin-bottom:14px">
+      <div style="color:var(--dim);font-size:12px;margin-bottom:14px">Overall Progress</div>
+      <div class="circ-wrap">
+        <svg width="130" height="130" style="transform:rotate(-90deg)">
+          <circle cx="65" cy="65" r="54" fill="none" stroke="var(--card2)" stroke-width="11"/>
+          <circle cx="65" cy="65" r="54" fill="none" stroke="var(--gold)" stroke-width="11"
+            stroke-dasharray="${2*Math.PI*54*0.73} ${2*Math.PI*54}" stroke-linecap="round"/>
+        </svg>
+        <div class="circ-txt">73%</div>
+      </div>
+      <div style="display:flex;justify-content:space-around">
+        ${[['Subjects','12/16'],['Tests','28'],['MCQs Solved','1240']].map(([l,v])=>`
+          <div><div style="color:var(--gold);font-weight:800;font-size:17px">${v}</div><div style="color:var(--dim);font-size:10px;margin-top:2px">${l}</div></div>`).join('')}
+      </div>
+    </div>
+    <div class="card" style="padding:16px;margin-bottom:14px">
+      <div style="font-weight:700;font-size:14px;margin-bottom:16px">Weekly Study Time</div>
+      <div class="week-chart">
+        ${[[40,'W1'],[65,'W2'],[30,'W3'],[80,'W4']].map(([h,l])=>`
+          <div class="week-bar-wrap">
+            <div class="week-bar" style="height:${h}%;opacity:${h===80?1:0.55}"></div>
+            <span class="week-lbl">${l}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div style="font-weight:700;font-size:14px;margin-bottom:12px">Subject Progress</div>
+    ${SUBJECTS.map((s,i)=>`
+      <div class="subj-prog-row">
+        <div class="subj-prog-hdr">
+          <span style="font-size:13px;font-weight:600">${s.name}</span>
+          <span style="color:var(--gold);font-size:13px;font-weight:700">${pcts[i]}%</span>
+        </div>
+        <div class="subj-prog-bar"><div class="subj-prog-fill" style="width:${pcts[i]}%"></div></div>
+      </div>`).join('')}
+  </div></div>
+  ${bnav()}`;
+}
+
+// ══════════════════════════════════════════
+// BOOKMARKS
+// ══════════════════════════════════════════
+function buildBookmarks() {
+  return `${drawer()}${topbar(false,'Bookmarks',true)}
+  <div class="content" style="display:flex;align-items:center;justify-content:center">
+    <div class="empty"><div class="ei">🔖</div><div class="et">No bookmarks yet</div><div class="es">Save important topics for quick access</div></div>
+  </div>${bnav()}`;
+}
+
+// ══════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════
+function buildSettings() {
+  return `${drawer()}${topbar(false,'Settings',true)}
+  <div class="content"><div class="pad">
+    ${[['🌙','Dark Mode','Enabled'],['🌐','Language','English'],['🔔','Notifications','On'],['📥','Auto-Download','Off'],['🗑️','Clear Cache','45 MB']].map(([ic,l,v])=>`
+      <div class="file-tile" style="margin-bottom:10px">
+        <div class="file-icon" style="background:var(--card2)">${ic}</div>
+        <span style="font-size:14px;font-weight:600;flex:1">${l}</span>
+        <span style="color:var(--gold);font-size:13px">${v} ›</span>
+      </div>`).join('')}
+  </div></div>${bnav()}`;
+}
+
+// ══════════════════════════════════════════
+// ABOUT
+// ══════════════════════════════════════════
+function buildAbout() {
+  return `${drawer()}${topbar(true)}
+  <div class="content"><div class="pad" style="padding-bottom:80px">
+    <div style="text-align:center;margin:20px 0">
+      <div style="font-size:48px;margin-bottom:8px">🦷</div>
+      <div style="color:var(--gold);font-weight:900;font-size:22px;letter-spacing:1px">Dentora</div>
+      <div style="color:var(--dim);font-size:13px;margin-top:2px">Learn. Master. Care.</div>
+    </div>
+    ${[['⊞','All in One Place','Notes, PDFs, Images, Videos and MCQs for every subject.'],
+       ['🧠','Smart & Organized','Well-structured content to help you learn faster.'],
+       ['📊','Track Your Progress','Stay consistent and achieve your goals.'],
+       ['🦷','Built for Dental Students','Made by a dental student for future dental professionals.']].map(([ic,t,s])=>`
+      <div class="feat-row">
+        <div class="feat-icon">${ic}</div>
+        <div><div class="feat-title">${t}</div><div class="feat-sub">${s}</div></div>
+      </div>`).join('')}
+    <div class="knowledge-banner">🤍 Knowledge today, better dentist tomorrow.</div>
+  </div></div>${bnav()}`;
+}
+
+// ══════════════════════════════════════════
+// ACTIONS
+// ══════════════════════════════════════════
+function go(id) {
+  STATE.prevScreen = STATE.screen;
+  STATE.screen = id;
+  STATE.drawer = false;
+  STATE.showAttach = false;
+  stopMCQTimer();
+  if (id === 'mcqTests') startMCQTimer();
+  render();
+}
+
+function goBack() {
+  STATE.screen = STATE.prevScreen || 'home';
+  STATE.prevScreen = null;
+  stopMCQTimer();
+  render();
+}
+
+function toggleDrawer() { STATE.drawer = !STATE.drawer; render(); }
+
+function openSubject(id) {
+  STATE.subject = SUBJECTS.find(s=>s.id===id);
+  STATE.subTab = 'overview';
+  STATE.prevScreen = STATE.screen;
+  STATE.screen = 'detail';
+  STATE.drawer = false;
+  render();
+}
+
+function setTab(t) { STATE.subTab = t; render(); }
+function openAttach() { STATE.showAttach = true; render(); }
+function closeAttach() { STATE.showAttach = false; render(); }
+
+function deleteMat(id) {
+  const sid = STATE.subject.id;
+  STATE.materials[sid] = (STATE.materials[sid]||[]).filter(m=>m.id!==id);
+  render();
+}
+
+function addMaterials(files, type) {
+  if (!STATE.subject || !files.length) return;
+  const sid = STATE.subject.id;
+  const mats = Array.from(files).map(f=>({
+    id: Date.now()+Math.random(),
+    name: f.name, type,
+    size: f.size,
+    url: URL.createObjectURL(f),
+    date: new Date().toLocaleDateString(),
+  }));
+  STATE.materials[sid] = [...(STATE.materials[sid]||[]), ...mats];
+  STATE.showAttach = false;
+  render();
+}
+
+function pickImg() { document.getElementById('imgInput').click(); }
+function pickVid() { document.getElementById('vidInput').click(); }
+function pickFile() { document.getElementById('fileInput').click(); }
+
+// MCQ
+function selectOpt(i) {
+  if (STATE.mcq.answered) return;
+  STATE.mcq.sel = i;
+  render();
+}
+function checkAnswer() {
+  if (STATE.mcq.sel === null) return;
+  const q = MCQS[STATE.mcq.idx];
+  STATE.mcq.answered = true;
+  if (STATE.mcq.sel === q.ans) STATE.mcq.score++;
+  render();
+}
+function nextQuestion() {
+  const next = STATE.mcq.idx + 1;
+  if (next >= MCQS.length) { STATE.mcq.done = true; stopMCQTimer(); }
+  else { STATE.mcq.idx = next; STATE.mcq.sel = null; STATE.mcq.answered = false; }
+  render();
+}
+function resetMCQ() {
+  STATE.mcq = {idx:0,sel:null,answered:false,score:0,done:false,timer:331};
+  startMCQTimer();
+  render();
+}
+function startMCQTimer() {
+  stopMCQTimer();
+  STATE.mcqInterval = setInterval(()=>{
+    if (STATE.mcq.timer > 0) { STATE.mcq.timer--; }
+    else stopMCQTimer();
+    const el = document.querySelector('.timer-txt');
+    if (el) el.textContent = fmt(STATE.mcq.timer);
+  },1000);
+}
+function stopMCQTimer() {
+  if (STATE.mcqInterval) { clearInterval(STATE.mcqInterval); STATE.mcqInterval = null; }
+}
+
+// ══════════════════════════════════════════
+// FILE INPUTS
+// ══════════════════════════════════════════
+function bindEvents() {
+  const imgI = document.getElementById('imgInput');
+  const vidI = document.getElementById('vidInput');
+  const filI = document.getElementById('fileInput');
+  if (imgI && !imgI._bound) {
+    imgI._bound = true;
+    imgI.addEventListener('change', e=>addMaterials(e.target.files,'image'));
+  }
+  if (vidI && !vidI._bound) {
+    vidI._bound = true;
+    vidI.addEventListener('change', e=>addMaterials(e.target.files,'video'));
+  }
+  if (filI && !filI._bound) {
+    filI._bound = true;
+    filI.addEventListener('change', e=>{
+      const files = Array.from(e.target.files).map(f=>{
+        const ext = f.name.split('.').pop().toLowerCase();
+        Object.defineProperty(f,'_t',{value: ext==='pdf'?'pdf':['doc','docx','ppt','pptx','xls','xlsx'].includes(ext)?'doc':'file'});
+        return f;
+      });
+      if (!STATE.subject) return;
+      const sid = STATE.subject.id;
+      const mats = files.map(f=>({id:Date.now()+Math.random(),name:f.name,type:f._t||'file',size:f.size,url:URL.createObjectURL(f),date:new Date().toLocaleDateString()}));
+      STATE.materials[sid] = [...(STATE.materials[sid]||[]),...mats];
+      STATE.showAttach = false;
+      render();
+    });
+  }
+}
+
+// ══════════════════════════════════════════
+// SERVICE WORKER
+// ══════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'dentora-v1';
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/'])));
+      self.skipWaiting();
+    });
+    self.addEventListener('fetch', e => {
+      e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+    });
+  `;
+  const swBlob = new Blob([swCode], {type:'text/javascript'});
+  const swURL = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swURL).catch(()=>{});
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+render();
+</script>
+</body>
+</html>
